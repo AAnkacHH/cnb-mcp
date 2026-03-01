@@ -281,6 +281,76 @@ describe("registerConvertTools", () => {
     });
   });
 
+  // ---------------------------------------------------------------------------
+  // Precision: output must use 3 decimal places (matches CNB API precision)
+  // ---------------------------------------------------------------------------
+
+  it("formats output with 3 decimal places for whole numbers", async () => {
+    mockCnbFetch.mockResolvedValue({
+      rates: [
+        { currencyCode: "EUR", rate: 25.0, amount: 1, validFor: "2024-01-15", order: 1, country: "EMU", currency: "euro" },
+      ],
+    });
+
+    const handler = server.getHandler("cnb_convert_currency");
+    const result = await handler({ amount: 50, from: "EUR", to: "CZK" });
+
+    expect(result.content[0].text).toMatch(/^50\.000 EUR = 1,250\.000 CZK/);
+  });
+
+  it("formats output with 3 decimal places for fractional results", async () => {
+    mockCnbFetch.mockResolvedValue({
+      rates: [
+        { currencyCode: "EUR", rate: 25.345, amount: 1, validFor: "2024-01-15", order: 1, country: "EMU", currency: "euro" },
+      ],
+    });
+
+    const handler = server.getHandler("cnb_convert_currency");
+    const result = await handler({ amount: 100, from: "CZK", to: "EUR" });
+
+    // 100 / 25.345 = 3.94556...
+    expect(result.content[0].text).toMatch(/^100\.000 CZK = 3\.946 EUR/);
+  });
+
+  it("formats output with 3 decimal places for cross-rate with real-world rates", async () => {
+    mockCnbFetch.mockResolvedValue({
+      rates: [
+        { currencyCode: "EUR", rate: 25.345, amount: 1, validFor: "2024-01-15", order: 1, country: "EMU", currency: "euro" },
+        { currencyCode: "JPY", rate: 15.213, amount: 100, validFor: "2024-01-15", order: 2, country: "Japan", currency: "yen" },
+      ],
+    });
+
+    const handler = server.getHandler("cnb_convert_currency");
+    const result = await handler({ amount: 1000, from: "EUR", to: "JPY" });
+
+    // 1000 * (25.345 / 1) / (15.213 / 100) = 1000 * 25.345 / 0.15213 = 166,601.459...
+    const fromRate = 25.345 / 1;
+    const toRate = 15.213 / 100;
+    const expected = (1000 * fromRate) / toRate;
+    expect(result.content[0].text).toMatch(new RegExp(`^1,000\\.000 EUR = ${expected.toFixed(3).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} JPY`));
+  });
+
+  it("formats amount with thousands separator and 3 decimal places", async () => {
+    mockCnbFetch.mockResolvedValue({
+      rates: [
+        { currencyCode: "EUR", rate: 25.06, amount: 1, validFor: "2024-01-15", order: 1, country: "EMU", currency: "euro" },
+      ],
+    });
+
+    const handler = server.getHandler("cnb_convert_currency");
+    const result = await handler({ amount: 1000000, from: "EUR", to: "CZK" });
+
+    // 1000000 * 25.06 = 25,060,000.000
+    expect(result.content[0].text).toMatch(/^1,000,000\.000 EUR = 25,060,000\.000 CZK/);
+  });
+
+  it("same-currency identity also uses 3 decimal places", async () => {
+    const handler = server.getHandler("cnb_convert_currency");
+    const result = await handler({ amount: 1234.5, from: "USD", to: "USD" });
+
+    expect(result.content[0].text).toContain("1,234.500 USD = 1,234.500 USD");
+  });
+
   it("passes the date parameter to cnbFetch", async () => {
     mockCnbFetch.mockResolvedValue({
       rates: [
