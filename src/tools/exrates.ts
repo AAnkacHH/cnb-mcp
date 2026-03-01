@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { cnbFetch, CnbApiError } from "../api/client.js";
+import { cnbFetch } from "../api/client.js";
 import {
   dateSchema,
   currencyCodeSchema,
@@ -16,23 +16,7 @@ import type {
   ExRateAveragesResponse,
 } from "../types.js";
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function ok(data: unknown) {
-  return {
-    content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-  };
-}
-
-function fail(err: unknown) {
-  const msg = err instanceof CnbApiError ? err.message : "Unexpected error";
-  return {
-    content: [{ type: "text" as const, text: msg }],
-    isError: true as const,
-  };
-}
+import { ok, fail } from "./response.js";
 
 // ---------------------------------------------------------------------------
 // Average-style tool factory (tools 4-6 share the same pattern)

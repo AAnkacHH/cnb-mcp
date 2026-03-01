@@ -1,8 +1,9 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { cnbFetch, CnbApiError } from "../api/client.js";
+import { cnbFetch } from "../api/client.js";
 import { dateSchema, yearSchema } from "../validators/schemas.js";
 import { validateDateOrYear } from "../validators/base.js";
+import { ok, fail } from "./response.js";
 import type { CzeoniaDailyResponse, CzeoniaYearResponse } from "../types.js";
 
 export function registerCzeoniaTools(server: McpServer): void {
@@ -30,20 +31,15 @@ export function registerCzeoniaTools(server: McpServer): void {
           const data = await cnbFetch<CzeoniaYearResponse>("/czeonia/daily-year", {
             year: route.year,
           });
-          return {
-            content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-          };
+          return ok(data);
         }
 
         const data = await cnbFetch<CzeoniaDailyResponse>("/czeonia/daily", {
           date: route.date,
         });
-        return {
-          content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-        };
+        return ok(data);
       } catch (err) {
-        const msg = err instanceof CnbApiError ? err.message : "Unexpected error";
-        return { content: [{ type: "text" as const, text: msg }], isError: true };
+        return fail(err);
       }
     },
   );

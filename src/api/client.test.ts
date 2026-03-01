@@ -1,14 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { CnbApiError, cnbFetch } from "./client.js";
-
-function mockResponse(status: number, body?: unknown): Response {
-  return {
-    ok: status >= 200 && status < 300,
-    status,
-    statusText: status === 200 ? "OK" : "Error",
-    json: () => Promise.resolve(body),
-  } as Response;
-}
+import { mockResponse } from "../tests/mock-response.js";
 
 afterEach(() => {
   vi.restoreAllMocks();

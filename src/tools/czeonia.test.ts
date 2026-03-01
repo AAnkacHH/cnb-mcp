@@ -1,42 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { registerCzeoniaTools } from "./czeonia.js";
+import { createMockServer } from "../tests/mock-server.js";
 
-vi.mock("../api/client.js", () => ({
-  cnbFetch: vi.fn(),
-  CnbApiError: class CnbApiError extends Error {
-    constructor(
-      public status: number,
-      public endpoint: string,
-      message: string,
-    ) {
-      super(message);
-      this.name = "CnbApiError";
-    }
-  },
-}));
+vi.mock("../api/client.js", async (importOriginal) => {
+  const original = await importOriginal<typeof import("../api/client.js")>();
+  return { ...original, cnbFetch: vi.fn() };
+});
 
 import { cnbFetch, CnbApiError } from "../api/client.js";
 
 const mockCnbFetch = vi.mocked(cnbFetch);
-
-type ToolHandler = (...args: never[]) => Promise<unknown>;
-
-function createMockServer() {
-  const tools = new Map<string, ToolHandler>();
-  return {
-    registerTool: vi.fn((name: string, _meta: unknown, handler: ToolHandler) => {
-      tools.set(name, handler);
-    }),
-    tool: vi.fn((name: string, _desc: string, _schema: unknown, handler: ToolHandler) => {
-      tools.set(name, handler);
-    }),
-    getHandler(name: string): ToolHandler {
-      const h = tools.get(name);
-      if (!h) throw new Error(`Tool "${name}" not registered`);
-      return h;
-    },
-  };
-}
 
 describe("registerCzeoniaTools", () => {
   let server: ReturnType<typeof createMockServer>;

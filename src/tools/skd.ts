@@ -1,6 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { cnbFetch, CnbApiError } from "../api/client.js";
+import { z } from "zod";
+import { cnbFetch } from "../api/client.js";
 import { dateSchema } from "../validators/schemas.js";
+import { ok, fail } from "./response.js";
 import type { SkdResponse } from "../types.js";
 
 export function registerSkdTools(server: McpServer): void {
@@ -10,19 +12,16 @@ export function registerSkdTools(server: McpServer): void {
       title: "CNB Short-Term Bonds",
       description:
         "Get short-term government bond (SKD) prices and nominal values for a specific date.",
-      inputSchema: {
+      inputSchema: z.object({
         date: dateSchema.optional().describe("Date in YYYY-MM-DD format. Defaults to today."),
-      },
+      }),
     },
     async ({ date }) => {
       try {
         const data = await cnbFetch<SkdResponse>("/skd/daily", { date });
-        return {
-          content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-        };
+        return ok(data);
       } catch (err) {
-        const msg = err instanceof CnbApiError ? err.message : "Unexpected error";
-        return { content: [{ type: "text" as const, text: msg }], isError: true };
+        return fail(err);
       }
     },
   );

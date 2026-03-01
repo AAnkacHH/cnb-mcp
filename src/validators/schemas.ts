@@ -6,7 +6,12 @@ import { z } from "zod";
 
 export const dateSchema = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format");
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format")
+  .refine((s) => {
+    const [y, m, d] = s.split("-").map(Number);
+    const date = new Date(y, m - 1, d);
+    return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
+  }, "Date is not a valid calendar date");
 
 export const currencyCodeSchema = z
   .string()

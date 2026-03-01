@@ -1,5 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { cnbFetch, CnbApiError } from "../api/client.js";
+import { cnbFetch } from "../api/client.js";
 import {
   dateSchema,
   priborYearSchema,
@@ -7,6 +7,8 @@ import {
   priborPeriodSchema,
 } from "../validators/schemas.js";
 import { validatePriborYear } from "../validators/pribor.js";
+import { validationError } from "../validators/base.js";
+import { ok, fail } from "./response.js";
 import type { PriborResponse } from "../types.js";
 
 export function registerPriborTools(server: McpServer): void {
@@ -23,15 +25,9 @@ export function registerPriborTools(server: McpServer): void {
     async ({ date }) => {
       try {
         const data = await cnbFetch<PriborResponse>("/pribor/daily", { date });
-        return {
-          content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-        };
+        return ok(data);
       } catch (err) {
-        const msg = err instanceof CnbApiError ? err.message : "Unexpected error";
-        return {
-          content: [{ type: "text" as const, text: msg }],
-          isError: true,
-        };
+        return fail(err);
       }
     },
   );
@@ -56,12 +52,7 @@ export function registerPriborTools(server: McpServer): void {
     async ({ year, period }) => {
       try {
         const route = validatePriborYear({ year, period });
-        if (!route.ok) {
-          return {
-            content: [{ type: "text" as const, text: route.error }],
-            isError: true,
-          };
-        }
+        if (!route.ok) return validationError(route.error);
 
         let data: PriborResponse;
 
@@ -76,15 +67,9 @@ export function registerPriborTools(server: McpServer): void {
           });
         }
 
-        return {
-          content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-        };
+        return ok(data);
       } catch (err) {
-        const msg = err instanceof CnbApiError ? err.message : "Unexpected error";
-        return {
-          content: [{ type: "text" as const, text: msg }],
-          isError: true,
-        };
+        return fail(err);
       }
     },
   );

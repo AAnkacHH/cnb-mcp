@@ -22,6 +22,18 @@ describe("dateSchema", () => {
   it.each(["2024/01/15", "24-01-15", "not-a-date", ""])("rejects invalid date %s", (v) => {
     expect(dateSchema.safeParse(v).success).toBe(false);
   });
+
+  it("rejects impossible date 2024-02-30", () => {
+    expect(dateSchema.safeParse("2024-02-30").success).toBe(false);
+  });
+
+  it("rejects impossible date 2024-13-01", () => {
+    expect(dateSchema.safeParse("2024-13-01").success).toBe(false);
+  });
+
+  it("rejects impossible date 2024-04-31", () => {
+    expect(dateSchema.safeParse("2024-04-31").success).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------

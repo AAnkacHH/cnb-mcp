@@ -1,12 +1,14 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { cnbFetch, CnbApiError } from "../api/client.js";
+import { cnbFetch } from "../api/client.js";
 import {
   dateSchema,
   forwardCurrencyPairSchema,
   forwardMaturitySchema,
 } from "../validators/schemas.js";
 import { validateForward } from "../validators/forward.js";
+import { validationError } from "../validators/base.js";
+import { ok, fail } from "./response.js";
 import type { ForwardResponse } from "../types.js";
 
 export function registerForwardTools(server: McpServer): void {
@@ -43,12 +45,7 @@ export function registerForwardTools(server: McpServer): void {
     async ({ date, currencyPair, maturity, dateFrom, dateTo }) => {
       try {
         const route = validateForward({ date, currencyPair, maturity, dateFrom, dateTo });
-        if (!route.ok) {
-          return {
-            content: [{ type: "text" as const, text: route.error }],
-            isError: true,
-          };
-        }
+        if (!route.ok) return validationError(route.error);
 
         if (route.data.endpoint === "range") {
           const data = await cnbFetch<ForwardResponse>(
@@ -60,20 +57,15 @@ export function registerForwardTools(server: McpServer): void {
               maturity: route.data.maturity,
             },
           );
-          return {
-            content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-          };
+          return ok(data);
         }
 
         const data = await cnbFetch<ForwardResponse>("/forward/daily", {
           date: route.data.date,
         });
-        return {
-          content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-        };
+        return ok(data);
       } catch (err) {
-        const msg = err instanceof CnbApiError ? err.message : "Unexpected error";
-        return { content: [{ type: "text" as const, text: msg }], isError: true };
+        return fail(err);
       }
     },
   );

@@ -1,9 +1,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { cnbFetch, CnbApiError } from "../api/client.js";
+import { cnbFetch } from "../api/client.js";
 import { currencyCodeSchema, dateSchema } from "../validators/schemas.js";
 import { validationError } from "../validators/base.js";
 import { validateConvert } from "../validators/convert.js";
+import { fail } from "./response.js";
 import type { ExRatesDailyResponse, ExRate } from "../types.js";
 
 /**
@@ -168,14 +169,7 @@ export function registerConvertTools(server: McpServer): void {
           content: [{ type: "text" as const, text: output }],
         };
       } catch (err) {
-        const msg =
-          err instanceof CnbApiError
-            ? err.message
-            : "Unexpected error occurred during currency conversion.";
-        return {
-          content: [{ type: "text" as const, text: msg }],
-          isError: true,
-        };
+        return fail(err, "Unexpected error occurred during currency conversion.");
       }
     },
   );

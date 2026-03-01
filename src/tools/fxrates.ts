@@ -1,7 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { cnbFetch, CnbApiError } from "../api/client.js";
+import { cnbFetch } from "../api/client.js";
 import { yearMonthSchema, langSchema, currencyCodeSchema } from "../validators/schemas.js";
+import { ok, fail } from "./response.js";
 import type { FxRatesDailyMonthResponse, FxRatesCurrencyRangeResponse } from "../types.js";
 
 export function registerFxratesTools(server: McpServer): void {
@@ -27,16 +28,9 @@ export function registerFxratesTools(server: McpServer): void {
           yearMonth,
           lang,
         });
-        return {
-          content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-        };
+        return ok(data);
       } catch (err) {
-        const msg =
-          err instanceof CnbApiError ? err.message : "Unexpected error while fetching FX rates.";
-        return {
-          content: [{ type: "text" as const, text: msg }],
-          isError: true,
-        };
+        return fail(err, "Unexpected error while fetching FX rates.");
       }
     },
   );
@@ -68,18 +62,9 @@ export function registerFxratesTools(server: McpServer): void {
           yearMonthTo,
           lang,
         });
-        return {
-          content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
-        };
+        return ok(data);
       } catch (err) {
-        const msg =
-          err instanceof CnbApiError
-            ? err.message
-            : "Unexpected error while fetching FX rate history.";
-        return {
-          content: [{ type: "text" as const, text: msg }],
-          isError: true,
-        };
+        return fail(err, "Unexpected error while fetching FX rate history.");
       }
     },
   );
