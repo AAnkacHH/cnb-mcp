@@ -1,6 +1,12 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { cnbFetch, CnbApiError } from "../api/client.js";
+import {
+  dateSchema,
+  forwardCurrencyPairSchema,
+  forwardMaturitySchema,
+} from "../validators/schemas.js";
+import { validateForward } from "../validators/forward.js";
 import type { ForwardResponse } from "../types.js";
 
 export function registerForwardTools(server: McpServer): void {
@@ -13,45 +19,45 @@ export function registerForwardTools(server: McpServer): void {
         "If 'dateFrom' is provided, returns data for a date range (with optional currency pair and maturity filters). " +
         "Otherwise returns all forward points for a single date.",
       inputSchema: z.object({
-        date: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
+        date: dateSchema
           .optional()
           .describe(
             "Date in YYYY-MM-DD format. Defaults to today. Used when 'dateFrom' is not provided.",
           ),
-        currencyPair: z
-          .enum(["ALL", "EUR_TO_CZK", "USD_TO_CZK"])
+        currencyPair: forwardCurrencyPairSchema
           .optional()
           .describe("Currency pair filter. Defaults to ALL. Used only with date range queries."),
-        maturity: z
-          .enum(["ALL", "THREE_MONTH", "SIX_MONTH"])
+        maturity: forwardMaturitySchema
           .optional()
           .describe("Maturity filter. Defaults to ALL. Used only with date range queries."),
-        dateFrom: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
+        dateFrom: dateSchema
           .optional()
           .describe(
             "Start date for range query in YYYY-MM-DD format. If provided, triggers range endpoint.",
           ),
-        dateTo: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
+        dateTo: dateSchema
           .optional()
           .describe("End date for range query in YYYY-MM-DD format. Defaults to today."),
       }),
     },
     async ({ date, currencyPair, maturity, dateFrom, dateTo }) => {
       try {
-        if (dateFrom !== undefined) {
+        const route = validateForward({ date, currencyPair, maturity, dateFrom, dateTo });
+        if (!route.ok) {
+          return {
+            content: [{ type: "text" as const, text: route.error }],
+            isError: true,
+          };
+        }
+
+        if (route.data.endpoint === "range") {
           const data = await cnbFetch<ForwardResponse>(
             "/forward/daily-range-currency-pair-maturity",
             {
-              currencyPair: currencyPair ?? "ALL",
-              dateFrom,
-              dateTo,
-              maturity: maturity ?? "ALL",
+              currencyPair: route.data.currencyPair,
+              dateFrom: route.data.dateFrom,
+              dateTo: route.data.dateTo,
+              maturity: route.data.maturity,
             },
           );
           return {
@@ -59,7 +65,9 @@ export function registerForwardTools(server: McpServer): void {
           };
         }
 
-        const data = await cnbFetch<ForwardResponse>("/forward/daily", { date });
+        const data = await cnbFetch<ForwardResponse>("/forward/daily", {
+          date: route.data.date,
+        });
         return {
           content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
         };

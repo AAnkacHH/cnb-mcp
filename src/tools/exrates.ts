@@ -1,6 +1,15 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { cnbFetch, CnbApiError } from "../api/client.js";
+import {
+  dateSchema,
+  currencyCodeSchema,
+  yearMonthSchema,
+  yearSchema,
+  langSchema,
+} from "../validators/schemas.js";
+import { validationError } from "../validators/base.js";
+import { validateAverages } from "../validators/exrates.js";
 import type {
   ExRatesDailyResponse,
   ExRatesCurrencyMonthResponse,
@@ -47,44 +56,31 @@ function registerAverageTool(
       title,
       description,
       inputSchema: z.object({
-        currency: z
-          .string()
-          .regex(/^[A-Z]{3}$/)
+        currency: currencyCodeSchema
           .optional()
           .describe(
             "ISO 4217 currency code (e.g., EUR, USD). Returns all years for this currency.",
           ),
-        year: z
-          .number()
-          .int()
-          .min(1991)
-          .max(2100)
+        year: yearSchema
           .optional()
           .describe("Year (e.g., 2024). Returns all currencies for this year."),
       }),
     },
     async ({ currency, year }) => {
       try {
-        if (currency === undefined && year === undefined) {
-          return fail(
-            new CnbApiError(
-              400,
-              endpoints.year,
-              "At least one of 'currency' or 'year' must be provided.",
-            ),
-          );
-        }
+        const validation = validateAverages({ currency, year });
+        if (!validation.ok) return validationError(validation.error);
 
-        // If year is given (or both), prefer the year endpoint (returns all currencies).
-        if (year !== undefined) {
+        if (validation.data.endpoint === "year") {
           const data = await cnbFetch<ExRateAveragesResponse>(endpoints.year, {
-            year,
+            year: validation.data.year,
           });
           return ok(data);
         }
 
-        // Only currency is given.
-        const data = await cnbFetch<ExRateAveragesResponse>(endpoints.currency, { currency });
+        const data = await cnbFetch<ExRateAveragesResponse>(endpoints.currency, {
+          currency: validation.data.currency,
+        });
         return ok(data);
       } catch (err) {
         return fail(err);
@@ -107,16 +103,8 @@ export function registerExratesTools(server: McpServer): void {
       title: "CNB Daily Exchange Rates",
       description: "Get official CZK exchange rates for a specific date (~27 major currencies).",
       inputSchema: z.object({
-        date: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional()
-          .describe("Date in YYYY-MM-DD format. Defaults to today."),
-        lang: z
-          .enum(["CZ", "EN"])
-          .optional()
-          .default("EN")
-          .describe("Language for country/currency names."),
+        date: dateSchema.optional().describe("Date in YYYY-MM-DD format. Defaults to today."),
+        lang: langSchema.optional().describe("Language for country/currency names."),
       }),
     },
     async ({ date, lang }) => {
@@ -141,13 +129,8 @@ export function registerExratesTools(server: McpServer): void {
       title: "CNB Monthly Exchange Rates",
       description: "Get daily exchange rates for a specific currency during a given month.",
       inputSchema: z.object({
-        currency: z
-          .string()
-          .regex(/^[A-Z]{3}$/)
-          .describe("ISO 4217 currency code (e.g., EUR, USD)."),
-        yearMonth: z
-          .string()
-          .regex(/^\d{4}-\d{2}$/)
+        currency: currencyCodeSchema.describe("ISO 4217 currency code (e.g., EUR, USD)."),
+        yearMonth: yearMonthSchema
           .optional()
           .describe("Month in YYYY-MM format. Defaults to the current month."),
       }),
@@ -175,13 +158,7 @@ export function registerExratesTools(server: McpServer): void {
       description:
         "Get all daily exchange rates for an entire year. Returns data for all currencies.",
       inputSchema: z.object({
-        year: z
-          .number()
-          .int()
-          .min(1991)
-          .max(2100)
-          .optional()
-          .describe("Year (e.g., 2024). Defaults to the current year."),
+        year: yearSchema.optional().describe("Year (e.g., 2024). Defaults to the current year."),
       }),
     },
     async ({ year }) => {

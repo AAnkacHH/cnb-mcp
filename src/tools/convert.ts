@@ -1,6 +1,9 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { cnbFetch, CnbApiError } from "../api/client.js";
+import { currencyCodeSchema, dateSchema } from "../validators/schemas.js";
+import { validationError } from "../validators/base.js";
+import { validateConvert } from "../validators/convert.js";
 import type { ExRatesDailyResponse, ExRate } from "../types.js";
 
 /**
@@ -24,17 +27,9 @@ export function registerConvertTools(server: McpServer): void {
         "(e.g. EUR to USD). Uses the daily fixing rate for the specified date.",
       inputSchema: z.object({
         amount: z.number().describe("Amount to convert. Must be greater than zero."),
-        from: z
-          .string()
-          .toUpperCase()
-          .describe("Source currency ISO 4217 code (e.g. EUR, USD, CZK)."),
-        to: z
-          .string()
-          .toUpperCase()
-          .describe("Target currency ISO 4217 code (e.g. CZK, GBP, JPY)."),
-        date: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
+        from: currencyCodeSchema.describe("Source currency ISO 4217 code (e.g. EUR, USD, CZK)."),
+        to: currencyCodeSchema.describe("Target currency ISO 4217 code (e.g. CZK, GBP, JPY)."),
+        date: dateSchema
           .optional()
           .describe(
             "Date for the exchange rate in YYYY-MM-DD format. Defaults to today (latest available fixing).",
@@ -42,21 +37,12 @@ export function registerConvertTools(server: McpServer): void {
       }),
     },
     async ({ amount, from, to, date }) => {
-      // --- Validation: amount must be positive ---
-      if (amount <= 0) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: "Error: Amount must be greater than zero.",
-            },
-          ],
-          isError: true,
-        };
-      }
+      // --- Validation ---
+      const validation = validateConvert({ amount, from, to });
+      if (!validation.ok) return validationError(validation.error);
 
       // --- Same currency: return identity ---
-      if (from === to) {
+      if (validation.data.sameCurrency) {
         return {
           content: [
             {

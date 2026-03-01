@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { z } from "zod";
 import { cnbFetch, CnbApiError } from "../api/client.js";
+import { dateSchema } from "../validators/schemas.js";
 import type { SkdResponse } from "../types.js";
 
 export function registerSkdTools(server: McpServer): void {
@@ -10,13 +10,9 @@ export function registerSkdTools(server: McpServer): void {
       title: "CNB Short-Term Bonds",
       description:
         "Get short-term government bond (SKD) prices and nominal values for a specific date.",
-      inputSchema: z.object({
-        date: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional()
-          .describe("Date in YYYY-MM-DD format. Defaults to today."),
-      }),
+      inputSchema: {
+        date: dateSchema.optional().describe("Date in YYYY-MM-DD format. Defaults to today."),
+      },
     },
     async ({ date }) => {
       try {

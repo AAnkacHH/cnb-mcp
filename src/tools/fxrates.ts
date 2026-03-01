@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { cnbFetch, CnbApiError } from "../api/client.js";
+import { yearMonthSchema, langSchema, currencyCodeSchema } from "../validators/schemas.js";
 import type { FxRatesDailyMonthResponse, FxRatesCurrencyRangeResponse } from "../types.js";
 
 export function registerFxratesTools(server: McpServer): void {
@@ -14,16 +15,10 @@ export function registerFxratesTools(server: McpServer): void {
         "These rates are published monthly (last business day of the month, valid for the next month). " +
         "Use this when the standard exchange rates tool does not include the currency you need.",
       inputSchema: z.object({
-        yearMonth: z
-          .string()
-          .regex(/^\d{4}-\d{2}$/)
+        yearMonth: yearMonthSchema
           .optional()
           .describe("Month in YYYY-MM format. Defaults to the current month."),
-        lang: z
-          .enum(["CZ", "EN"])
-          .optional()
-          .default("EN")
-          .describe("Language for country/currency names."),
+        lang: langSchema.optional().describe("Language for country/currency names."),
       }),
     },
     async ({ yearMonth, lang }) => {
@@ -55,22 +50,14 @@ export function registerFxratesTools(server: McpServer): void {
         "Get the history of FX rates for a specific exotic currency over a range of months. " +
         "Useful for tracking how less common currencies changed against CZK over time.",
       inputSchema: z.object({
-        currency: z.string().describe("ISO 4217 currency code (e.g., THB, KES, ARS). Required."),
-        yearMonthFrom: z
-          .string()
-          .regex(/^\d{4}-\d{2}$/)
-          .optional()
-          .describe("Start of the range in YYYY-MM format."),
-        yearMonthTo: z
-          .string()
-          .regex(/^\d{4}-\d{2}$/)
+        currency: currencyCodeSchema.describe(
+          "ISO 4217 currency code (e.g., THB, KES, ARS). Required.",
+        ),
+        yearMonthFrom: yearMonthSchema.optional().describe("Start of the range in YYYY-MM format."),
+        yearMonthTo: yearMonthSchema
           .optional()
           .describe("End of the range in YYYY-MM format. Defaults to the current month."),
-        lang: z
-          .enum(["CZ", "EN"])
-          .optional()
-          .default("EN")
-          .describe("Language for country/currency names."),
+        lang: langSchema.optional().describe("Language for country/currency names."),
       }),
     },
     async ({ currency, yearMonthFrom, yearMonthTo, lang }) => {

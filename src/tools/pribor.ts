@@ -1,19 +1,13 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { z } from "zod";
 import { cnbFetch, CnbApiError } from "../api/client.js";
+import {
+  dateSchema,
+  priborYearSchema,
+  PRIBOR_PERIOD,
+  priborPeriodSchema,
+} from "../validators/schemas.js";
+import { validatePriborYear } from "../validators/pribor.js";
 import type { PriborResponse } from "../types.js";
-
-const PRIBOR_PERIOD = [
-  "ONE_DAY",
-  "ONE_WEEK",
-  "TWO_WEEKS",
-  "ONE_MONTH",
-  "TWO_MONTH",
-  "THREE_MONTH",
-  "SIX_MONTH",
-  "NINE_MONTH",
-  "ONE_YEAR",
-] as const;
 
 export function registerPriborTools(server: McpServer): void {
   // ---------- cnb_pribor_daily ----------
@@ -24,11 +18,7 @@ export function registerPriborTools(server: McpServer): void {
       "Important for mortgage and corporate loan pricing in Czechia. " +
       "Note: the pribid field is always null in recent data because PRIBID was discontinued.",
     {
-      date: z
-        .string()
-        .regex(/^\d{4}-\d{2}-\d{2}$/)
-        .optional()
-        .describe("Date in YYYY-MM-DD format. Defaults to today."),
+      date: dateSchema.optional().describe("Date in YYYY-MM-DD format. Defaults to today."),
     },
     async ({ date }) => {
       try {
@@ -54,34 +44,36 @@ export function registerPriborTools(server: McpServer): void {
       "If period is omitted, returns all terms for every business day. " +
       "Note: the pribid field is always null in recent data because PRIBID was discontinued.",
     {
-      year: z
-        .number()
-        .int()
-        .min(1999)
-        .optional()
-        .describe("Year (e.g. 2024). Defaults to the current year."),
-      period: z
-        .enum(PRIBOR_PERIOD)
+      year: priborYearSchema.optional().describe("Year (e.g. 2024). Defaults to the current year."),
+      period: priborPeriodSchema
         .optional()
         .describe(
           "PRIBOR term/period to filter by. " +
-            "Values: ONE_DAY, ONE_WEEK, TWO_WEEKS, ONE_MONTH, TWO_MONTH, THREE_MONTH, SIX_MONTH, NINE_MONTH, ONE_YEAR. " +
+            `Values: ${PRIBOR_PERIOD.join(", ")}. ` +
             "If omitted, returns all terms.",
         ),
     },
     async ({ year, period }) => {
       try {
+        const route = validatePriborYear({ year, period });
+        if (!route.ok) {
+          return {
+            content: [{ type: "text" as const, text: route.error }],
+            isError: true,
+          };
+        }
+
         let data: PriborResponse;
 
-        if (period) {
-          // Specific term endpoint
+        if (route.data.endpoint === "specific-term") {
           data = await cnbFetch<PriborResponse>("/pribor/daily-year-term", {
-            year,
-            period,
+            year: route.data.year,
+            period: route.data.period,
           });
         } else {
-          // All terms endpoint
-          data = await cnbFetch<PriborResponse>("/pribor/daily-year", { year });
+          data = await cnbFetch<PriborResponse>("/pribor/daily-year", {
+            year: route.data.year,
+          });
         }
 
         return {
