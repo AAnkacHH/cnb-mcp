@@ -5,15 +5,6 @@
 - [Node.js](https://nodejs.org/) 22 or later
 - An MCP-compatible client (Claude Desktop, Claude Code, etc.)
 
-## Installation
-
-```bash
-git clone https://github.com/AAnkacHH/cnb-mcp.git
-cd cnb-mcp
-npm install
-npm run build
-```
-
 ## Setup
 
 ### Claude Desktop
@@ -27,8 +18,8 @@ Add to your `claude_desktop_config.json`:
 {
   "mcpServers": {
     "cnb": {
-      "command": "node",
-      "args": ["/absolute/path/to/cnb-mcp/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "cnb-mcp"]
     }
   }
 }
@@ -43,8 +34,8 @@ Add to your `claude_desktop_config.json`:
 {
   "mcpServers": {
     "cnb": {
-      "command": "node",
-      "args": ["C:\\path\\to\\cnb-mcp\\dist\\index.js"]
+      "command": "npx",
+      "args": ["-y", "cnb-mcp"]
     }
   }
 }
@@ -52,12 +43,10 @@ Add to your `claude_desktop_config.json`:
 
 </details>
 
-Replace the path with the actual location where you cloned the repository.
-
 ### Claude Code
 
 ```bash
-claude mcp add cnb -- node /absolute/path/to/cnb-mcp/dist/index.js
+claude mcp add cnb -- npx -y cnb-mcp
 ```
 
 ### Other MCP Clients
@@ -65,10 +54,34 @@ claude mcp add cnb -- node /absolute/path/to/cnb-mcp/dist/index.js
 Any MCP-compatible client can use this server via stdio transport:
 
 ```bash
-node /absolute/path/to/cnb-mcp/dist/index.js
+npx -y cnb-mcp
 ```
 
 The server communicates over stdin/stdout using the [Model Context Protocol](https://modelcontextprotocol.io/).
+
+## Manual Installation (from source)
+
+If you prefer to run from a local clone instead of npx:
+
+```bash
+git clone https://github.com/AAnkacHH/cnb-mcp.git
+cd cnb-mcp
+npm install
+npm run build
+```
+
+Then use `node` instead of `npx` in your configuration:
+
+```json
+{
+  "mcpServers": {
+    "cnb": {
+      "command": "node",
+      "args": ["/absolute/path/to/cnb-mcp/dist/index.js"]
+    }
+  }
+}
+```
 
 ## Verification
 

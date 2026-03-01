@@ -2,6 +2,7 @@
 
 # MCP server for the Czech National Bank API
 
+[![npm](https://img.shields.io/npm/v/cnb-mcp?color=cb0000)](https://www.npmjs.com/package/cnb-mcp)
 [![CI](https://github.com/AAnkacHH/cnb-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/AAnkacHH/cnb-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-22+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
@@ -32,12 +33,7 @@ Plus a `cnb://info` resource and an `analyze-currency-trend` prompt.
 
 ## Quick Start
 
-```bash
-git clone https://github.com/AAnkacHH/cnb-mcp.git
-cd cnb-mcp
-npm install
-npm run build
-```
+No installation needed — runs directly via `npx`.
 
 ### Claude Desktop
 
@@ -47,8 +43,8 @@ Add to your `claude_desktop_config.json`:
 {
   "mcpServers": {
     "cnb": {
-      "command": "node",
-      "args": ["/absolute/path/to/cnb-mcp/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "cnb-mcp"]
     }
   }
 }
@@ -57,10 +53,10 @@ Add to your `claude_desktop_config.json`:
 ### Claude Code
 
 ```bash
-claude mcp add cnb -- node /absolute/path/to/cnb-mcp/dist/index.js
+claude mcp add cnb -- npx -y cnb-mcp
 ```
 
-> See [Configuration Guide](docs/configuration.md) for detailed setup instructions.
+> See [Configuration Guide](docs/configuration.md) for all setup options including manual installation.
 
 ## Tools at a Glance
 

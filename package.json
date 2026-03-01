@@ -8,6 +8,24 @@
   "bin": {
     "cnb-mcp": "dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "cnb",
+    "czech-national-bank",
+    "exchange-rates",
+    "currency",
+    "finance"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AAnkacHH/cnb-mcp.git"
+  },
+  "homepage": "https://github.com/AAnkacHH/cnb-mcp#readme",
+  "author": "Andrii Plyskach",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
@@ -19,7 +37,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm run test"
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run test",
+    "prepublishOnly": "npm run check && npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",
