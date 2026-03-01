@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validatePriborYear } from "./pribor.js";
+import { validatePriborYear } from "../../src/validators/pribor.js";
 
 describe("validatePriborYear", () => {
   it("routes to specific-term when only period is provided", () => {

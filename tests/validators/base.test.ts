@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { valid, invalid, validationError, validateDateOrYear } from "./base.js";
+import { valid, invalid, validationError, validateDateOrYear } from "../../src/validators/base.js";
 
 // ---------------------------------------------------------------------------
 // valid()

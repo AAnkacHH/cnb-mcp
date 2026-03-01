@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateAverages } from "./exrates.js";
+import { validateAverages } from "../../src/validators/exrates.js";
 
 describe("validateAverages", () => {
   it("routes to currency endpoint when only currency is provided", () => {

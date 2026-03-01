@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { CnbApiError, cnbFetch } from "./client.js";
-import { mockResponse } from "../tests/mock-response.js";
+import { CnbApiError, cnbFetch } from "../../src/api/client.js";
+import { mockResponse } from "../helpers/mock-response.js";
 
 afterEach(() => {
   vi.restoreAllMocks();

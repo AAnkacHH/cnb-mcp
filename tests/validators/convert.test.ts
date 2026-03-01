@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateConvert } from "./convert.js";
+import { validateConvert } from "../../src/validators/convert.js";
 
 describe("validateConvert", () => {
   it("returns ok with sameCurrency: false for different currencies", () => {

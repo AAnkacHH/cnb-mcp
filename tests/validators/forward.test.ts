@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateForward } from "./forward.js";
+import { validateForward } from "../../src/validators/forward.js";
 
 describe("validateForward", () => {
   it("routes to range with default currencyPair and maturity when only dateFrom is provided", () => {

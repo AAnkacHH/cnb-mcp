@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { registerForwardTools } from "./forward.js";
-import { createMockServer } from "../tests/mock-server.js";
+import { registerForwardTools } from "../../src/tools/forward.js";
+import { createMockServer } from "../helpers/mock-server.js";
 
-vi.mock("../api/client.js", async (importOriginal) => {
-  const original = await importOriginal<typeof import("../api/client.js")>();
+vi.mock("../../src/api/client.js", async (importOriginal) => {
+  const original = await importOriginal<typeof import("../../src/api/client.js")>();
   return { ...original, cnbFetch: vi.fn() };
 });
 
-import { cnbFetch, CnbApiError } from "../api/client.js";
+import { cnbFetch, CnbApiError } from "../../src/api/client.js";
 
 const mockCnbFetch = vi.mocked(cnbFetch);
 

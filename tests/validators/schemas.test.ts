@@ -9,7 +9,7 @@ import {
   priborPeriodSchema,
   forwardCurrencyPairSchema,
   forwardMaturitySchema,
-} from "./schemas.js";
+} from "../../src/validators/schemas.js";
 
 // ---------------------------------------------------------------------------
 // dateSchema
