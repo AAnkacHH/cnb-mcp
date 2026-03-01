@@ -7,7 +7,6 @@ import {
   forwardMaturitySchema,
 } from "../validators/schemas.js";
 import { validateForward } from "../validators/forward.js";
-import { validationError } from "../validators/base.js";
 import { ok, fail } from "./response.js";
 import type { ForwardResponse } from "../types.js";
 
@@ -45,7 +44,7 @@ export function registerForwardTools(server: McpServer): void {
     async ({ date, currencyPair, maturity, dateFrom, dateTo }) => {
       try {
         const route = validateForward({ date, currencyPair, maturity, dateFrom, dateTo });
-        if (!route.ok) return validationError(route.error);
+        if (!route.ok) return fail(route.error);
 
         if (route.data.endpoint === "range") {
           const data = await cnbFetch<ForwardResponse>(

@@ -7,7 +7,12 @@ export function ok(data: unknown) {
 }
 
 export function fail(err: unknown, fallbackMessage = "Unexpected error") {
-  const msg = err instanceof CnbApiError ? err.message : fallbackMessage;
+  const msg =
+    typeof err === "string"
+      ? err
+      : err instanceof CnbApiError
+        ? err.message
+        : fallbackMessage;
   return {
     content: [{ type: "text" as const, text: msg }],
     isError: true as const,

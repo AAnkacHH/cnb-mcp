@@ -8,7 +8,6 @@ import {
   yearSchema,
   langSchema,
 } from "../validators/schemas.js";
-import { validationError } from "../validators/base.js";
 import { validateAverages } from "../validators/exrates.js";
 import type {
   ExRatesDailyResponse,
@@ -53,7 +52,7 @@ function registerAverageTool(
     async ({ currency, year }) => {
       try {
         const validation = validateAverages({ currency, year });
-        if (!validation.ok) return validationError(validation.error);
+        if (!validation.ok) return fail(validation.error);
 
         if (validation.data.endpoint === "year") {
           const data = await cnbFetch<ExRateAveragesResponse>(endpoints.year, {

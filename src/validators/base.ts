@@ -12,13 +12,6 @@ export function invalid<T>(error: string): ValidationResult<T> {
   return { ok: false, error };
 }
 
-export function validationError(message: string) {
-  return {
-    content: [{ type: "text" as const, text: message }],
-    isError: true as const,
-  };
-}
-
 // ---------------------------------------------------------------------------
 // Shared date-or-year routing (used by czeonia.ts and omo.ts)
 // ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { valid, invalid, validationError, validateDateOrYear } from "../../src/validators/base.js";
+import { valid, invalid, validateDateOrYear } from "../../src/validators/base.js";
 
 // ---------------------------------------------------------------------------
 // valid()
@@ -20,18 +20,6 @@ describe("invalid", () => {
     expect(invalid("something went wrong")).toEqual({
       ok: false,
       error: "something went wrong",
-    });
-  });
-});
-
-// ---------------------------------------------------------------------------
-// validationError()
-// ---------------------------------------------------------------------------
-describe("validationError", () => {
-  it("returns MCP-compatible error object", () => {
-    expect(validationError("bad input")).toEqual({
-      content: [{ type: "text", text: "bad input" }],
-      isError: true,
     });
   });
 });

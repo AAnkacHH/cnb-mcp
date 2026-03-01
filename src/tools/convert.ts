@@ -2,7 +2,6 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { cnbFetch } from "../api/client.js";
 import { currencyCodeSchema, dateSchema } from "../validators/schemas.js";
-import { validationError } from "../validators/base.js";
 import { validateConvert } from "../validators/convert.js";
 import { fail } from "./response.js";
 import type { ExRatesDailyResponse, ExRate } from "../types.js";
@@ -40,7 +39,7 @@ export function registerConvertTools(server: McpServer): void {
     async ({ amount, from, to, date }) => {
       // --- Validation ---
       const validation = validateConvert({ amount, from, to });
-      if (!validation.ok) return validationError(validation.error);
+      if (!validation.ok) return fail(validation.error);
 
       // --- Same currency: return identity ---
       if (validation.data.sameCurrency) {

@@ -7,7 +7,6 @@ import {
   priborPeriodSchema,
 } from "../validators/schemas.js";
 import { validatePriborYear } from "../validators/pribor.js";
-import { validationError } from "../validators/base.js";
 import { ok, fail } from "./response.js";
 import type { PriborResponse } from "../types.js";
 
@@ -52,7 +51,7 @@ export function registerPriborTools(server: McpServer): void {
     async ({ year, period }) => {
       try {
         const route = validatePriborYear({ year, period });
-        if (!route.ok) return validationError(route.error);
+        if (!route.ok) return fail(route.error);
 
         let data: PriborResponse;
 
