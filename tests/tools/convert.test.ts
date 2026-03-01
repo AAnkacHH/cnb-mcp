@@ -59,7 +59,7 @@ describe("registerConvertTools", () => {
       content: [
         {
           type: "text",
-          text: "100.00 EUR = 100.00 EUR\nNo conversion needed (same currency).",
+          text: "100.000 EUR = 100.000 EUR\nNo conversion needed (same currency).",
         },
       ],
     });
@@ -83,12 +83,12 @@ describe("registerConvertTools", () => {
     const handler = server.getHandler("cnb_convert_currency");
     const result = await handler({ amount: 100, from: "CZK", to: "EUR" });
 
-    // 100 CZK / (25.0 / 1) = 4.00 EUR
+    // 100 CZK / (25.0 / 1) = 4.000 EUR
     expect(result).toEqual({
       content: [
         {
           type: "text",
-          text: "100.00 CZK = 4.00 EUR\nRate: 1 EUR = 25.000 CZK (CNB fixing for 2024-01-15)",
+          text: "100.000 CZK = 4.000 EUR\nRate: 1 EUR = 25.000 CZK (CNB fixing for 2024-01-15)",
         },
       ],
     });
@@ -112,12 +112,12 @@ describe("registerConvertTools", () => {
     const handler = server.getHandler("cnb_convert_currency");
     const result = await handler({ amount: 100, from: "EUR", to: "CZK" });
 
-    // 100 EUR * (25.0 / 1) = 2500.00 CZK
+    // 100 EUR * (25.0 / 1) = 2,500.000 CZK
     expect(result).toEqual({
       content: [
         {
           type: "text",
-          text: "100.00 EUR = 2,500.00 CZK\nRate: 1 EUR = 25.000 CZK (CNB fixing for 2024-01-15)",
+          text: "100.000 EUR = 2,500.000 CZK\nRate: 1 EUR = 25.000 CZK (CNB fixing for 2024-01-15)",
         },
       ],
     });
@@ -150,14 +150,14 @@ describe("registerConvertTools", () => {
     const handler = server.getHandler("cnb_convert_currency");
     const result = await handler({ amount: 100, from: "EUR", to: "USD" });
 
-    // Cross-rate: 100 * (25.0/1) / (23.0/1) = 100 * 1.08695... = 108.70 (rounded)
+    // Cross-rate: 100 * (25.0/1) / (23.0/1) = 100 * 1.08695... = 108.696 (rounded)
     const crossRate = 25.0 / 23.0;
     const converted = 100 * crossRate;
     expect(result).toEqual({
       content: [
         {
           type: "text",
-          text: `100.00 EUR = ${converted.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} USD\nRate: 1 EUR = ${crossRate.toFixed(3)} USD (CNB fixing for 2024-01-15)`,
+          text: `100.000 EUR = ${converted.toFixed(3).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} USD\nRate: 1 EUR = ${crossRate.toFixed(3)} USD (CNB fixing for 2024-01-15)`,
         },
       ],
     });

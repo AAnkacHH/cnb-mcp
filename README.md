@@ -97,6 +97,10 @@ cnb_convert_currency                  Currency conversion with cross-rates
 | [API Reference](docs/api-reference.md) | CNB API details, update schedule, currencies, error handling |
 | [Contributing](docs/contributing.md) | Development setup, project structure, scripts, CI pipeline |
 
+## Disclaimer
+
+> The CNB API returns exchange rates with **3 decimal places** — this is the official precision of the CNB fixing. Converted amounts are rounded to match this precision. For legally binding rates, always verify against the [official CNB website](https://www.cnb.cz/).
+
 ## License
 
 [MIT](LICENSE)

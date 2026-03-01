@@ -11,7 +11,7 @@ import type { ExRatesDailyResponse, ExRate } from "../types.js";
  * Formats a number with thousands separators and fixed decimal places.
  * Uses comma as thousands separator and dot as decimal separator.
  */
-function formatAmount(value: number, decimals: number = 2): string {
+function formatAmount(value: number, decimals: number = 3): string {
   const parts = value.toFixed(decimals).split(".");
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return parts.join(".");
